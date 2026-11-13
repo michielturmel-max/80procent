@@ -2,6 +2,8 @@
 
 Bar-widget voor [Omarchy](https://omarchy.org) die de acculimiet van een Intel-MacBook schakelt tussen vol laden en stoppen bij 80%. De limiet staat in de Apple-SMC (BCLM/BFCL) en overleeft een herstart.
 
+> **Status: experimenteel.** De widget is klein en getest op één Intel-MacBook, maar de setuid-root helper en de SMC-schrijfwijze vragen om voorzichtigheid. Lees de installatiestappen voordat je hem op je eigen machine zet.
+
 - Linkerklik op het accu-icoon: schakelen tussen 80% en vol.
 - Rechterklik: accustatus, lader en de huidige limiet.
 - Het icoon laat zien of de limiet actief is.
@@ -40,7 +42,11 @@ omarchy-restart-shell
 omarchy plugin enable 80procent
 ```
 
-`./install.sh helper` laat zien welke regel je voor de helper moet uitvoeren. `./install.sh version` toont de versie en `./install.sh uninstall` verwijdert de plugin; de SMC-limiet blijft daarbij staan (terugzetten kan met `sudo macbook-charge-limit reset`).
+`./install.sh helper` laat zien welke regel je voor de helper moet uitvoeren. `./install.sh version` toont de versie en `./install.sh uninstall` verwijdert de plugin; de SMC-limiet blijft daarbij staan (terugzetten kan met `sudo macbook-charge-limit reset`). Wil je ook de helper zelf weghalen:
+
+```sh
+sudo rm /usr/local/bin/macbook-charge-limit
+```
 
 ## Bediening
 
