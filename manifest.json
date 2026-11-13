@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "id": "80procent",
+  "name": "80 Procent",
+  "version": "1.0.0",
+  "author": "michiel",
+  "license": "MIT",
+  "description": "Schakelaar voor de acculimiet van deze Intel-MacBook: vol laden of stoppen bij 80%. Zet de Apple-SMC-sleutels BCLM/BFCL via /usr/local/bin/macbook-charge-limit (setuid-root helper).",
+  "kinds": ["bar-widget"],
+  "entryPoints": { "barWidget": "Panel.qml" },
+  "barWidget": {
+    "displayName": "80 Procent",
+    "description": "Klik om te schakelen tussen vol laden en een acculimiet van 80%. De limiet staat in de SMC en overleeft herstarten. Rechtermuisknop toont de accustatus; de accubalk in het icoontje staat op 80% of vol.",
+    "category": "Systeem",
+    "aliases": ["80procent", "accu", "batterij", "lader", "laadlimiet"],
+    "allowMultiple": false,
+    "defaultSection": "left",
+    "defaults": {},
+    "schema": []
+  }
+}

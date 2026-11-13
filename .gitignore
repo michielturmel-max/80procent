@@ -1,0 +1,4 @@
+dist/
+*.zip
+tool/macbook-charge-limit
+tool/*.o

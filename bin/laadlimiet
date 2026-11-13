@@ -1,0 +1,79 @@
+#!/usr/bin/env bash
+# Laadlimiet voor de accu van deze Intel-MacBook. De limiet staat in de
+# Apple-SMC (sleutels BCLM/BFCL) en overleeft herstarten; 100 betekent
+# "geen limiet". Dit script praat via /usr/local/bin/macbook-charge-limit,
+# een setuid-root helper die alleen die twee SMC-sleutels mag schrijven.
+#
+#   status    lees limiet + accutelstand als JSON
+#   limiet    alleen de waarde (80 of 100)
+#   wissel    80 <-> 100
+#   80        limiet op 80 zetten
+#   vol       limiet uitzetten (100)
+set -u
+
+TOOL=/usr/local/bin/macbook-charge-limit
+BAT=""
+for f in /sys/class/power_supply/*/type; do
+  [ -e "$f" ] || continue
+  if grep -q Battery "$f"; then BAT=$(basename "$(dirname "$f")"); break; fi
+done
+[ -n "$BAT" ] || BAT=BAT0
+ADP=""
+for f in /sys/class/power_supply/*/type; do
+  [ -e "$f" ] || continue
+  if grep -qE "^(AC|Mains)$" "$f"; then ADP=$(basename "$(dirname "$f")"); break; fi
+done
+
+sysread() { cat "/sys/class/power_supply/$BAT/$1" 2>/dev/null || echo ""; }
+
+limiet() {
+  if [ -x "$TOOL" ]; then
+    local raw
+    raw=$("$TOOL" read 2>/dev/null)
+    printf '%s' "$raw" | sed -n 's/.*BCLM=\([0-9][0-9]*\).*/\1/p'
+  else
+    echo ""
+  fi
+}
+
+status() {
+  local l
+  l=$(limiet)
+  [ -n "$l" ] || l=""
+  local stekker="-1"
+  if [ -n "$ADP" ]; then
+    stekker=$(cat "/sys/class/power_supply/$ADP/online" 2>/dev/null) || stekker="-1"
+  fi
+  printf '{"limiet":"%s","accu":"%s","status":"%s","stekker":"%s"}\n' \
+    "${l:-?}" \
+    "$(sysread capacity)" \
+    "$(sysread status)" \
+    "$stekker"
+}
+
+schrijf() {
+  local doel=$1
+  local ok bijs
+  ok=$("$TOOL" set "$doel" 2>&1)
+  local nieuw
+  nieuw=$(limiet)
+  if [ "$nieuw" = "$doel" ]; then
+    if [ "$doel" = 100 ]; then bijs="geen-limiet"; else bijs="bescherming"; fi
+    echo "ok:laderlimiet $nieuw% ($bijs)"
+  else
+    echo "fout:$ok"
+    exit 1
+  fi
+}
+
+case "${1:-status}" in
+  status) status ;;
+  limiet) limiet ;;
+  wissel)
+    cur=$(limiet)
+    if [ "$cur" = "80" ]; then schrijf 100; else schrijf 80; fi
+    ;;
+  80) schrijf 80 ;;
+  vol|100) schrijf 100 ;;
+  *) echo "onbekend commando '$1'" >&2; exit 1 ;;
+esac
